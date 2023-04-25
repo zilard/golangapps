@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	"github.com/zilard/golangapps/projectx/network"
+	"github.com/zilard/golangapps/blockchainx/network"
 )
 
 func main() {

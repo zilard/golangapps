@@ -1,4 +1,4 @@
-module projectx
+module github.com/zilard/golangapps/blockchainx
 
 go 1.20
 
