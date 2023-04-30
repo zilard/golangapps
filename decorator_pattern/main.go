@@ -13,6 +13,8 @@ func (s *Store) Store(value string) error {
 	return nil
 }
 
+// we are executing the function and we are
+// also storing into the DB
 func myExecuteFunc(db DB) ExecuteFn {
 	return func(s string) {
 		fmt.Println("my ex func", s)
