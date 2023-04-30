@@ -2,12 +2,27 @@ package main
 
 import "fmt"
 
-func myExecuteFunc(s string) {
-	fmt.Println("my ex func", s)
+type DB interface {
+	Store(string) error
+}
+
+type Store struct{}
+
+func (s *Store) Store(value string) error {
+	fmt.Println("storing into db", value)
+	return nil
+}
+
+func myExecuteFunc(db DB) ExecuteFn {
+	return func(s string) {
+		fmt.Println("my ex func", s)
+		db.Store(s)
+	}
 }
 
 func main() {
-	Execute(myExecuteFunc)
+	s := &Store{}
+	Execute(myExecuteFunc(s))
 }
 
 // type function
@@ -16,5 +31,4 @@ type ExecuteFn func(string)
 
 func Execute(fn ExecuteFn) {
 	fn("FOO BAR BAZ")
-
 }
