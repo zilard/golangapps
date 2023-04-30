@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type DB interface {
 	Store(string) error
@@ -22,7 +25,13 @@ func myExecuteFunc(db DB) ExecuteFn {
 	}
 }
 
+func handler(w http.ResponseWriter, r *http.Request) {
+	// where is my DB
+}
+
 func main() {
+	http.HandleFunc("/", handler)
+
 	s := &Store{}
 	Execute(myExecuteFunc(s))
 }
