@@ -25,14 +25,15 @@ func myExecuteFunc(db DB) ExecuteFn {
 	}
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
-	// where is my DB
+func makeHTTPFunc(db DB) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		db.Store("some http shenanigans")
+	}
 }
 
 func main() {
-	http.HandleFunc("/", handler)
-
 	s := &Store{}
+	http.HandleFunc("/", makeHTTPFunc(s))
 	Execute(myExecuteFunc(s))
 }
 
