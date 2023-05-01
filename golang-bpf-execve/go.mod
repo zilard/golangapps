@@ -1,4 +1,4 @@
-module golang_bpf_execve
+module github.com/zilard/golangapps/golang-bpf-execve
 
 go 1.20
 
