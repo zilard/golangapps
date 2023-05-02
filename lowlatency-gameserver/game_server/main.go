@@ -2,13 +2,39 @@ package main
 
 import (
 	"fmt"
+	"math"
+	"math/rand"
 	"net/http"
 
 	"github.com/anthdm/hollywood/actor"
 	"github.com/gorilla/websocket"
 )
 
-type GameServer struct{}
+type PlayerSession struct {
+	sessionID int
+	clientID  int
+	username  string
+	inLobby   bool
+	conn      *websocket.Conn
+}
+
+func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
+	return func() actor.Receiver {
+		return &PlayerSession{
+			conn:      conn,
+			sessionID: sid,
+		}
+	}
+}
+
+// each actor needs to implement the Receive method
+func (s *PlayerSession) Receive(c *actor.Context) {
+
+}
+
+type GameServer struct {
+	ctx *actor.Context
+}
 
 func newGameServer() actor.Receiver {
 	return &GameServer{}
@@ -18,6 +44,7 @@ func (s *GameServer) Receive(c *actor.Context) {
 	switch msg := c.Message().(type) {
 	case actor.Started:
 		s.startHTTP()
+		s.ctx = c
 		_ = msg
 	}
 }
@@ -38,9 +65,11 @@ func (s *GameServer) handleWS(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("ws upgrade err:", err)
 		return
 	}
-	fmt.Print("new client trying to connect")
-	fmt.Print(conn)
 
+	fmt.Print("new client trying to connect")
+	sid := rand.Intn(math.MaxInt)
+	pid := s.ctx.SpawnChild(newPlayerSession(sid, conn), fmt.Sprintf("session_%d", sid))
+	fmt.Printf("client with sid %d and pid %s just connected\n", sid, pid)
 }
 
 func main() {
