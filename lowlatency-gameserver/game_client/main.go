@@ -6,14 +6,10 @@ import (
 	"math/rand"
 
 	"github.com/gorilla/websocket"
+	"github.com/zilard/golangapps/lowlatency-gameserver/types"
 )
 
 const wsServerEndpoint = "ws://localhost:40000/ws"
-
-type Login struct {
-	ClientID int    `json:"clientID"`
-	Username string `json:"username"`
-}
 
 type GameClient struct {
 	conn     *websocket.Conn
@@ -25,11 +21,12 @@ func newGameClient(conn *websocket.Conn, username string) *GameClient {
 	return &GameClient{
 		clientID: rand.Intn(math.MaxInt),
 		username: username,
+		conn:     conn,
 	}
 }
 
 func (c *GameClient) login() error {
-	return c.conn.WriteJSON(Login{
+	return c.conn.WriteJSON(types.Login{
 		ClientID: c.clientID,
 		Username: c.username,
 	})
