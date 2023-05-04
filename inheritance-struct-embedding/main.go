@@ -28,17 +28,23 @@ func NewPlayer() *Player {
 }
 
 type Enemy struct {
-	posX float64
-	posY float64
+	*Position
 }
 
-func (e *Enemy) Move(x, y float64) {
-	e.posX += x
-	e.posY += y
+func NewEnemy() *Enemy {
+	return &Enemy{
+		Position: &Position{},
+	}
 }
 
 func main() {
-	player := NewPlayer()
+	raidBoss := NewEnemy()
+	raidBoss.Move(1.1, 10.4)
+	fmt.Println("raidBoss:", raidBoss.Position)
 
+	player := NewPlayer()
+	player.Move(1.1, 10.4)
+	fmt.Println(player.Position)
+	player.Teleport(1000.4, 3000.4)
 	fmt.Println(player.Position)
 }
