@@ -50,6 +50,8 @@ func main() {
 	raidBoss := NewEnemy()
 	raidBoss.Move(1.1, 10.4)
 	fmt.Println("raidBoss:", raidBoss.Position)
+	raidBoss.MoveSpecial(1.1, 10.4)
+	fmt.Println("raidBoss move special:", raidBoss.Position)
 
 	player := NewPlayer()
 	player.Move(1.1, 10.4)
