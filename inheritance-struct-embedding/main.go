@@ -2,6 +2,15 @@ package main
 
 import "fmt"
 
+type SpecialPosition struct {
+	Position
+}
+
+func (sp *SpecialPosition) MoveSpecial(x, y float64) {
+	sp.x += x * x
+	sp.y += y * y
+}
+
 type Position struct {
 	x float64
 	y float64
@@ -28,12 +37,12 @@ func NewPlayer() *Player {
 }
 
 type Enemy struct {
-	*Position
+	*SpecialPosition
 }
 
 func NewEnemy() *Enemy {
 	return &Enemy{
-		Position: &Position{},
+		SpecialPosition: &SpecialPosition{},
 	}
 }
 
