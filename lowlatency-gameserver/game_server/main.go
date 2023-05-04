@@ -29,15 +29,31 @@ func newPlayerSession(sid int, conn *websocket.Conn) actor.Producer {
 
 // each actor needs to implement the Receive method
 func (s *PlayerSession) Receive(c *actor.Context) {
+	switch msg := c.Message().(type) {
+	case actor.Started:
+		s.readLoop()
+	}
 
+}
+
+func (s *PlayerSession) readLoop() {
+	for {
+		if err := s.conn.ReadJSON(msg); err != nil {
+			fmt.Println()
+			return
+		}
+	}
 }
 
 type GameServer struct {
-	ctx *actor.Context
+	ctx      *actor.Context
+	sessions map[*actor.PID]struct{}
 }
 
 func newGameServer() actor.Receiver {
-	return &GameServer{}
+	return &GameServer{
+		sessions: make(map[*actor.PID]struct{}),
+	}
 }
 
 func (s *GameServer) Receive(c *actor.Context) {
@@ -69,7 +85,7 @@ func (s *GameServer) handleWS(w http.ResponseWriter, r *http.Request) {
 	fmt.Print("new client trying to connect")
 	sid := rand.Intn(math.MaxInt)
 	pid := s.ctx.SpawnChild(newPlayerSession(sid, conn), fmt.Sprintf("session_%d", sid))
-	fmt.Printf("client with sid %d and pid %s just connected\n", sid, pid)
+	s.sessions[pid] = struct{}{}
 }
 
 func main() {
