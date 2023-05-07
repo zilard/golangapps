@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 
 	"github.com/gofiber/fiber"
 )
@@ -23,9 +27,23 @@ curl https://mainnet.infura.io/v3/2cecb47e279c45ccb3bec53828c56b17 \
 
 */
 
+const apiKey = "2cecb47e279c45ccb3bec53828c56b17"
+const portNr = 8080
+
 type BlockQuery struct {
 	Method string   `json:"method"`
 	Params []string `json:"params"`
+}
+
+type RequestBody struct {
+	Jsonrpc string        `json:"jsonrpc"`
+	ID      int           `json:"id"`
+	Method  string        `json:"method"`
+	Params  []interface{} `json:"params"`
+}
+
+type ResponseBody struct {
+	Result string `json:"result"`
 }
 
 func GetEthBlockNumber(ctx *fiber.Ctx) {
@@ -44,10 +62,46 @@ func GetEthBlockNumber(ctx *fiber.Ctx) {
 	fmt.Printf("Received request with method '%s' and params '%v'\n",
 		req.Method, req.Params)
 
-	// this will send back -> {"method":"eth_blockNumber","params":[]}
+	method := "eth_blockNumber"
+	url := fmt.Sprintf("https://mainnet.infura.io/v3/%s", apiKey)
+
+	requestBody := RequestBody{
+		Jsonrpc: "2.0",
+		ID:      1,
+		Method:  method,
+		Params:  []interface{}{},
+	}
+
+	jsonStr, err := json.Marshal(requestBody)
+	if err != nil {
+		panic(err)
+	}
+
+	postreq, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+
+	postreq.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(postreq)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var responseBody ResponseBody
+	err = json.Unmarshal(bodyBytes, &responseBody)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(responseBody.Result)
+
 	ctx.JSON(fiber.Map{
-		"method": req.Method,
-		"params": req.Params,
+		"respone": responseBody.Result,
 	})
 
 }
@@ -57,5 +111,5 @@ func main() {
 
 	app.Post("/api/getethblocknumber", GetEthBlockNumber)
 
-	log.Fatal(app.Listen(":8080"))
+	log.Fatal(app.Listen(portNr))
 }
