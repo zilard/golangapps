@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 )
 
 /*
@@ -30,11 +30,6 @@ curl https://mainnet.infura.io/v3/2cecb47e279c45ccb3bec53828c56b17 \
 const apiKey = "2cecb47e279c45ccb3bec53828c56b17"
 const portNr = 8080
 
-type BlockQuery struct {
-	Method string   `json:"method"`
-	Params []string `json:"params"`
-}
-
 type RequestBody struct {
 	Jsonrpc string        `json:"jsonrpc"`
 	ID      int           `json:"id"`
@@ -46,29 +41,15 @@ type ResponseBody struct {
 	Result string `json:"result"`
 }
 
-func GetEthBlockNumber(ctx *fiber.Ctx) {
+func GetEthBlockNumber(ctx *fiber.Ctx) error {
 
-	var req BlockQuery
-
-	ctx.BodyParser(&req)
-
-	if len(req.Method) == 0 {
-		ctx.Status(400).JSON(fiber.Map{
-			"ok":    false,
-			"error": "Method not specified.",
-		})
-	}
-
-	fmt.Printf("Received request with method '%s' and params '%v'\n",
-		req.Method, req.Params)
-
-	method := "eth_blockNumber"
+	ethRPCMethod := "eth_blockNumber"
 	url := fmt.Sprintf("https://mainnet.infura.io/v3/%s", apiKey)
 
 	requestBody := RequestBody{
 		Jsonrpc: "2.0",
 		ID:      1,
-		Method:  method,
+		Method:  ethRPCMethod,
 		Params:  []interface{}{},
 	}
 
@@ -77,11 +58,11 @@ func GetEthBlockNumber(ctx *fiber.Ctx) {
 		panic(err)
 	}
 
-	postreq, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonStr))
 
-	postreq.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
-	resp, err := client.Do(postreq)
+	resp, err := client.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -98,18 +79,14 @@ func GetEthBlockNumber(ctx *fiber.Ctx) {
 		panic(err)
 	}
 
-	fmt.Println(responseBody.Result)
-
-	ctx.JSON(fiber.Map{
-		"respone": responseBody.Result,
-	})
+	return ctx.SendString(fmt.Sprintf("latest block number is: %s\n", responseBody.Result))
 
 }
 
 func main() {
 	app := fiber.New()
 
-	app.Post("/api/getethblocknumber", GetEthBlockNumber)
+	app.Get("/api/getethblocknumber", GetEthBlockNumber)
 
-	log.Fatal(app.Listen(portNr))
+	log.Fatal(app.Listen(fmt.Sprintf(":%d", portNr)))
 }
