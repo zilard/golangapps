@@ -9,26 +9,13 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/cobra"
 )
 
-/*
-
-RETRIEVE CURRENT BLOCK NUMBER:  eth_blockNumber
-
-
-
-curl https://mainnet.infura.io/v3/2cecb47e279c45ccb3bec53828c56b17 \
-    -X POST \
-    -H "Content-Type: application/json" \
-    --data '{"jsonrpc": "2.0", "id": 1, "method": "eth_blockNumber", "params": []}'
-
-	{"jsonrpc":"2.0","id":1,"result":"0x1068702"}
-
-
-*/
-
-const apiKey = "2cecb47e279c45ccb3bec53828c56b17"
-const portNr = 8080
+type EthSession struct {
+	apiToken string
+	port     string
+}
 
 type RequestBody struct {
 	Jsonrpc string        `json:"jsonrpc"`
@@ -41,10 +28,10 @@ type ResponseBody struct {
 	Result string `json:"result"`
 }
 
-func GetEthBlockNumber(ctx *fiber.Ctx) error {
+func GetEthBlockNumber(ctx *fiber.Ctx, apiToken string) error {
 
 	ethRPCMethod := "eth_blockNumber"
-	url := fmt.Sprintf("https://mainnet.infura.io/v3/%s", apiKey)
+	url := fmt.Sprintf("https://mainnet.infura.io/v3/%s", apiToken)
 
 	requestBody := RequestBody{
 		Jsonrpc: "2.0",
@@ -83,10 +70,40 @@ func GetEthBlockNumber(ctx *fiber.Ctx) error {
 
 }
 
+// initializes the root command and its flags
+func initSession() *EthSession {
+
+	s := EthSession{}
+
+	// Create the root command
+	rootCmd := &cobra.Command{
+		Use:   "ethquery",
+		Short: "query Ethereum mainnet using Infura",
+		Run:   func(cmd *cobra.Command, args []string) {},
+	}
+
+	// Add a flag for apitoken
+	rootCmd.Flags().StringVarP(&s.apiToken, "apitoken", "t", "", "The API token to use")
+
+	// Add a flag for port
+	rootCmd.Flags().StringVarP(&s.port, "port", "p", "", "The port to use")
+
+	rootCmd.Execute()
+
+	return &s
+}
+
 func main() {
+
+	// Call the initSession function to initialize and execute the root command
+	s := initSession()
+
 	app := fiber.New()
 
-	app.Get("/api/getethblocknumber", GetEthBlockNumber)
+	app.Get("/api/getethblocknumber", func(c *fiber.Ctx) error {
+		return GetEthBlockNumber(c, s.apiToken)
+	})
 
-	log.Fatal(app.Listen(fmt.Sprintf(":%d", portNr)))
+	fmt.Printf("port %s\n", s.port)
+	log.Fatal(app.Listen(fmt.Sprintf(":%s", s.port)))
 }

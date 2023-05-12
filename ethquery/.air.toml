@@ -1,0 +1,6 @@
+root = "."
+tmp_dir = "bin"
+
+[build]
+cmd = "make all"
+bin = "bin/ethquery"

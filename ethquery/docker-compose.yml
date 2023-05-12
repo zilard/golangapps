@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/app
+    command: air ./bin/ethquery --apitoken 2cecb47e279c45ccb3bec53828c56b17 --port 8080
