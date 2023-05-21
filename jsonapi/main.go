@@ -42,11 +42,6 @@ func main() {
 	http.ListenAndServe(":3000", nil)
 }
 
-type User struct {
-	ID    int
-	Valid bool
-}
-
 func handleGetUserByID(w http.ResponseWriter, r *http.Request) error {
 	if r.Method != http.MethodGet {
 		return apiError{Err: "invalid method", Status: http.StatusMethodNotAllowed}
