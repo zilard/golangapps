@@ -5,6 +5,17 @@ import (
 	"net/http"
 )
 
+type apiError struct {
+	err error
+	status int
+}
+
+// implements the Error interface
+func (e apiError) Error() string {
+	return e.err
+}
+
+
 func main() {
 
 	http.HandleFunc("/user", handleGetUserByID)
@@ -14,9 +25,9 @@ func main() {
 
 func handleGetUserByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		if err := writeJSON(w, http.StatusMethodNotAllowed, "any"); err != nil {
-			return
-		}
+		if err := writeJSON(w, http.StatusMethodNotAllowed, "any")
+		return
+
 	}
 }
 
