@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"encoding/json"
+	"net/http"
+)
 
 func main() {
 
@@ -11,9 +14,15 @@ func main() {
 
 func handleGetUserByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Header().Add("Content-Type", "application/json")
-		w.Write([]byte("not allowed"))
-		return
+		if err := writeJSON(w, http.StatusMethodNotAllowed, "any"); err != nil {
+			return
+		}
 	}
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) error {
+	w.WriteHeader(status)
+	w.Header().Add("Content-Type", "application/json")
+	return json.NewEncoder(w).Encode(v)
+
 }
