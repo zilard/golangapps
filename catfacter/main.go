@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -12,8 +12,37 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// BSON Binary serialization of JSON data, this how MongoDB stores data
+type Server struct {
+	client *mongo.Client
+}
 
+func NewServer(c *mongo.Client) *Server {
+	return &Server{
+		client: c,
+	}
+}
+
+func (s *Server) handleGetAllFacts(w http.ResponseWriter, r *http.Request) {
+	coll := s.client.Database("catfact").Collection("facts")
+
+	cursor, err := coll.Find(context.TODO(), nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	results := []bson.M{}
+	//check for errors in the conversion
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		log.Fatal(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+
+}
+
+// BSON Binary serialization of JSON data, this how MongoDB stores data
 type CatFactWorker struct {
 	client *mongo.Client
 }
@@ -25,7 +54,7 @@ func NewCatFactWorker(c *mongo.Client) *CatFactWorker {
 }
 
 func (cfw *CatFactWorker) start() error {
-	// coll := cfw.client.Database("catfact").Collection("facts")
+	coll := cfw.client.Database("catfact").Collection("facts")
 
 	// we dont want constantly polling that endpoint, hence need for ticker
 	ticker := time.NewTicker(2 * time.Second)
@@ -37,12 +66,14 @@ func (cfw *CatFactWorker) start() error {
 			return err
 		}
 		var catFact bson.M // map[string]any // map[string]interface{}
-
 		if err := json.NewDecoder(resp.Body).Decode(&catFact); err != nil {
 			return err
 		}
 
-		fmt.Println(catFact)
+		_, err = coll.InsertOne(context.TODO(), catFact)
+		if err != nil {
+			return err
+		}
 
 		<-ticker.C
 	}
@@ -56,8 +87,14 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	//27017 - default MongoDB port
 
 	worker := NewCatFactWorker(client)
-	worker.start()
+	go worker.start()
 
+	server := NewServer(client)
+	// expose a route /facts
+	http.HandleFunc("/facts", server.handleGetAllFacts)
+	// boot up a server here
+	http.ListenAndServe(":3000", nil)
 }
