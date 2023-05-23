@@ -25,7 +25,8 @@ func NewServer(c *mongo.Client) *Server {
 func (s *Server) handleGetAllFacts(w http.ResponseWriter, r *http.Request) {
 	coll := s.client.Database("catfact").Collection("facts")
 
-	cursor, err := coll.Find(context.TODO(), nil)
+	query := bson.M{}
+	cursor, err := coll.Find(context.TODO(), query)
 	if err != nil {
 		log.Fatal(err)
 	}
