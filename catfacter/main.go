@@ -120,7 +120,7 @@ func (cfw *CatFactWorker) start() error {
 			return err
 		}
 
-		if err := cfw.store.Put(*catFact); err != nil {
+		if err := cfw.store.Put(&catFact); err != nil {
 			return err
 		}
 
@@ -130,11 +130,15 @@ func (cfw *CatFactWorker) start() error {
 }
 
 func main() {
+	mongoStore, err := NewMongoStore()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	worker := NewCatFactWorker(client)
+	worker := NewCatFactWorker(mongoStore, "https://catfact.ninja/fact")
 	go worker.start()
 
-	server := NewServer(client)
+	server := NewServer(mongoStore)
 	// expose a route /facts
 	http.HandleFunc("/facts", server.handleGetAllFacts)
 	// boot up a server here
