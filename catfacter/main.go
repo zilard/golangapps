@@ -44,6 +44,12 @@ func NewMongoStore() (*MongoStore, error) {
 
 }
 
+func (store *MongoStore) Put(fact *CatFact) error {
+	coll := store.client.Database(store.database).Collection(store.collection)
+	_, err := coll.InsertOne(context.TODO(), fact)
+	return err
+}
+
 func (store *MongoStore) GetAll() ([]*CatFact, error) {
 	coll := store.client.Database(store.database).Collection(store.collection) // collection
 
@@ -87,34 +93,34 @@ func (s *Server) handleGetAllFacts(w http.ResponseWriter, r *http.Request) {
 
 // BSON Binary serialization of JSON data, this how MongoDB stores data
 type CatFactWorker struct {
-	store Storer
+	store       Storer
+	apiEndpoint string
 }
 
-func NewCatFactWorker(store Storer) *CatFactWorker {
+func NewCatFactWorker(store Storer, apiEndpoint string) *CatFactWorker {
 	return &CatFactWorker{
-		store: store,
+		store:       store,
+		apiEndpoint: apiEndpoint,
 	}
 }
 
 func (cfw *CatFactWorker) start() error {
-	coll := cfw.client.Database("catfact").Collection("facts")
 
 	// we dont want constantly polling that endpoint, hence need for ticker
 	ticker := time.NewTicker(2 * time.Second)
 
 	for {
 		// this link spits out random facts about Cats
-		resp, err := http.Get("https://catfact.ninja/fact")
+		resp, err := http.Get(cfw.apiEndpoint)
 		if err != nil {
 			return err
 		}
-		var catFact bson.M // map[string]any // map[string]interface{}
+		var catFact CatFact // map[string]any // map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&catFact); err != nil {
 			return err
 		}
 
-		_, err = coll.InsertOne(context.TODO(), catFact)
-		if err != nil {
+		if err := cfw.store.Put(*catFact); err != nil {
 			return err
 		}
 
