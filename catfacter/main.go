@@ -12,8 +12,40 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+type CatFact struct {
+	Fact   string `bson:"fact"`
+	Length int    `bson:"length"`
+}
+
+type Storer interface {
+	GetAll() ([]*CatFact, error)
+	Put(*CatFact) error
+}
+
+type MongoStore struct {
+	client     *mongo.Client
+	database   string
+	collection string
+}
+
+func NewMongoStore() (*MongoStore, error) {
+	client, err := mongo.Connect(
+		context.TODO(),
+		options.Client().ApplyURI("mongodb://localhost:27017")) //27017 - default MongoDB port
+	if err != nil {
+		return nil, err
+	}
+
+	return &MongoStore{
+		client:     client,
+		database:   "catfact",
+		collection: "facts",
+	}, nil
+
+}
+
 type Server struct {
-	client *mongo.Client
+	store Storer
 }
 
 func NewServer(c *mongo.Client) *Server {
@@ -82,13 +114,6 @@ func (cfw *CatFactWorker) start() error {
 }
 
 func main() {
-	client, err := mongo.Connect(
-		context.TODO(),
-		options.Client().ApplyURI("mongodb://localhost:27017"))
-	if err != nil {
-		panic(err)
-	}
-	//27017 - default MongoDB port
 
 	worker := NewCatFactWorker(client)
 	go worker.start()
