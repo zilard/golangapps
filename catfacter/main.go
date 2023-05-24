@@ -13,10 +13,11 @@ import (
 )
 
 type CatFact struct {
-	Fact   string `bson:"fact"`
-	Length int    `bson:"length"`
+	Fact   string `bson:"fact" json:"fact"`
+	Length int    `bson:"length" json:"length"`
 }
 
+// never hardcode your datalayers, use always interfaces
 type Storer interface {
 	GetAll() ([]*CatFact, error)
 	Put(*CatFact) error
@@ -26,6 +27,7 @@ type MongoStore struct {
 	client     *mongo.Client
 	database   string
 	collection string
+	coll       *mongo.Collection
 }
 
 func NewMongoStore() (*MongoStore, error) {
@@ -36,26 +38,22 @@ func NewMongoStore() (*MongoStore, error) {
 		return nil, err
 	}
 
+	coll := client.Database("catfact").Collection("facts")
 	return &MongoStore{
-		client:     client,
-		database:   "catfact",
-		collection: "facts",
+		client: client,
+		coll:   coll,
 	}, nil
 
 }
 
 func (store *MongoStore) Put(fact *CatFact) error {
-	coll := store.client.Database(store.database).Collection(store.collection)
-	_, err := coll.InsertOne(context.TODO(), fact)
+	_, err := store.coll.InsertOne(context.TODO(), fact)
 	return err
 }
 
 func (store *MongoStore) GetAll() ([]*CatFact, error) {
-	coll := store.client.Database(store.database).Collection(store.collection) // collection
-
-	// query
 	query := bson.M{}
-	cursor, err := coll.Find(context.TODO(), query)
+	cursor, err := store.coll.Find(context.TODO(), query)
 	if err != nil {
 		return nil, err
 	}
