@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -44,30 +43,36 @@ func NewMongoStore() (*MongoStore, error) {
 
 }
 
+func (store *MongoStore) GetAll() ([]*CatFact, error) {
+	coll := store.client.Database(store.database).Collection(store.collection) // collection
+
+	// query
+	query := bson.M{}
+	cursor, err := coll.Find(context.TODO(), query)
+	if err != nil {
+		return nil, err
+	}
+
+	results := []*CatFact{} // slice of CatFact
+	//check for errors in the conversion
+	if err = cursor.All(context.TODO(), &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
 type Server struct {
 	store Storer
 }
 
-func NewServer(c *mongo.Client) *Server {
+func NewServer(s Storer) *Server {
 	return &Server{
-		client: c,
+		store: s,
 	}
 }
 
 func (s *Server) handleGetAllFacts(w http.ResponseWriter, r *http.Request) {
-	coll := s.client.Database("catfact").Collection("facts")
-
-	query := bson.M{}
-	cursor, err := coll.Find(context.TODO(), query)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	results := []bson.M{}
-	//check for errors in the conversion
-	if err = cursor.All(context.TODO(), &results); err != nil {
-		log.Fatal(err)
-	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
