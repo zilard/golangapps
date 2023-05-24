@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"time"
 
@@ -73,10 +74,14 @@ func NewServer(s Storer) *Server {
 }
 
 func (s *Server) handleGetAllFacts(w http.ResponseWriter, r *http.Request) {
+	catFacts, err := s.store.GetAll()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	w.WriteHeader(http.StatusOK)
 	w.Header().Add("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	json.NewEncoder(w).Encode(catFacts)
 
 }
 
