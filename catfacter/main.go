@@ -87,12 +87,12 @@ func (s *Server) handleGetAllFacts(w http.ResponseWriter, r *http.Request) {
 
 // BSON Binary serialization of JSON data, this how MongoDB stores data
 type CatFactWorker struct {
-	client *mongo.Client
+	store Storer
 }
 
-func NewCatFactWorker(c *mongo.Client) *CatFactWorker {
+func NewCatFactWorker(store Storer) *CatFactWorker {
 	return &CatFactWorker{
-		client: c,
+		store: store,
 	}
 }
 
