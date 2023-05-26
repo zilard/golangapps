@@ -2,21 +2,23 @@ package main
 
 import "fmt"
 
-type Server struct {
+type Opts struct {
 	maxConn int
 	id      string
 	tls     bool
 }
 
-func newServer(maxConn int, id string, tls bool) *Server {
+type Server struct {
+	Opts
+}
+
+func newServer(opts Opts) *Server {
 	return &Server{
-		maxConn: maxConn,
-		id:      id,
-		tls:     tls,
+		Opts: opts,
 	}
 }
 
 func main() {
-	s := newServer(1, "foo", false)
+	s := newServer(Opts{})
 	fmt.Printf("%+v\n", s)
 }
