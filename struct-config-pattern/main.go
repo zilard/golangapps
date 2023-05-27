@@ -43,6 +43,6 @@ func newServer(opts ...OptFunc) *Server {
 }
 
 func main() {
-	s := newServer(withTLS, withMaxConn(99))
+	s := newServer(withMaxConn(99))
 	fmt.Printf("%+v\n", s)
 }
