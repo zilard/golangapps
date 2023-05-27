@@ -18,7 +18,7 @@ func defaultOpts() Opts {
 	}
 }
 
-func withID(id *string) OptFunc {
+func withID(id string) OptFunc {
 	return func(opts *Opts) {
 		opts.id = id
 	}
