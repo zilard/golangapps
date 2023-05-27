@@ -22,6 +22,12 @@ func withTLS(opts *Opts) {
 	opts.tls = true
 }
 
+func withMaxConn(n int) OptFunc {
+	return func(opts *Opts) {
+		opts.maxConn = n
+	}
+}
+
 type Server struct {
 	Opts
 }
@@ -37,6 +43,6 @@ func newServer(opts ...OptFunc) *Server {
 }
 
 func main() {
-	s := newServer(withTLS)
+	s := newServer(withTLS, withMaxConn(99))
 	fmt.Printf("%+v\n", s)
 }
