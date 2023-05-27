@@ -18,6 +18,12 @@ func defaultOpts() Opts {
 	}
 }
 
+func withID(id *string) OptFunc {
+	return func(opts *Opts) {
+		opts.id = id
+	}
+}
+
 func withTLS(opts *Opts) {
 	opts.tls = true
 }
@@ -43,6 +49,6 @@ func newServer(opts ...OptFunc) *Server {
 }
 
 func main() {
-	s := newServer(withMaxConn(99))
+	s := newServer(withMaxConn(99), withID("bar foo waz"))
 	fmt.Printf("%+v\n", s)
 }
