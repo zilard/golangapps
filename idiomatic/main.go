@@ -46,6 +46,18 @@ func Foo() int {
 }
 */
 
+// functions that panic
+// if your function panics,
+// then you always prefix it with a "Must"
+func MustParseIntFromString(s string) int {
+	// logic
+	panic("oops")
+
+	return 10
+}
+
+// struct initialization
+
 func main() {
 
 }
