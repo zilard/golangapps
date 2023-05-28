@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // constant declarations
 // variable grouping
 // functions that panic
@@ -21,10 +23,25 @@ package main
 
 // if you wanna have multiple constants
 // then you need to group them, on top of the file
+/*
 const (
 	Scalar  = 0.1
 	Version = 0.1
 )
+*/
+
+// variable grouping
+func Foo() int {
+	var (
+		x   = 100
+		y   = 2
+		foo = "foo"
+	)
+
+	fmt.Println(foo)
+
+	return x + y
+}
 
 func main() {
 
