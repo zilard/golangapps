@@ -16,6 +16,12 @@ package main
 
 const scalar = 0.1
 
+// if you want to export it then we can capitalize
+// the first letter
+const Scalar = 0.1
+
+// if you wanna have multiple constants
+
 func main() {
 
 }
