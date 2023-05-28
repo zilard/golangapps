@@ -9,7 +9,11 @@ import (
 
 func main() {
 	start := time.Now()
-	ctx := context.Background()
+
+	// you can store variables inside context
+	ctx := context.WithValue(context.Background(), "foo", "bar")
+
+	// ctx := context.Background()
 	userID := 10
 	val, err := fetchUserData(ctx, userID)
 	if err != nil {
@@ -26,6 +30,11 @@ type Response struct {
 }
 
 func fetchUserData(ctx context.Context, userID int) (int, error) {
+
+	// fetch variable from context
+	val := ctx.Value("foo")
+	fmt.Println(val.(string))
+
 	// WithTimeout - we gonna create some context that is
 	// going to timeout after a certain timeframe
 	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*200)
