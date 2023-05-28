@@ -16,7 +16,7 @@ func main() {
 		log.Fatal(err)
 	}
 	fmt.Println("result: ", val)
-	fmt.Println("tool", time.Since(start))
+	fmt.Println("took: ", time.Since(start))
 
 }
 
@@ -54,6 +54,6 @@ func fetchUserData(ctx context.Context, userID int) (int, error) {
 }
 
 func fetchThirdPartyStuffWhichCanBeSlow() (int, error) {
-	time.Sleep(time.Millisecond * 500)
+	time.Sleep(time.Millisecond * 150)
 	return 777, nil
 }
