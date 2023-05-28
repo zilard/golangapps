@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 // constant declarations
 // variable grouping
 // functions that panic
@@ -31,6 +29,10 @@ const (
 */
 
 // variable grouping
+// if I have multiple variables in a function
+// then I'm always grouping them in a var
+// because it's much more idiomatic
+/*
 func Foo() int {
 	var (
 		x   = 100
@@ -42,6 +44,7 @@ func Foo() int {
 
 	return x + y
 }
+*/
 
 func main() {
 
