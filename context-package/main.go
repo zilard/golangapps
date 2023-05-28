@@ -20,13 +20,37 @@ func main() {
 
 }
 
-func fetchUserData(ctx context.Context, userID int) (int, error) {
-	val, err := fetchThirdPartyStuffWhichCanBeSlow()
-	if err != nil {
-		return 0, err
-	}
+type Response struct {
+	value int
+	err   error
+}
 
-	return val, nil
+func fetchUserData(ctx context.Context, userID int) (int, error) {
+	// WithTimeout - we gonna create some context that is
+	// going to timeout after a certain timeframe
+	ctx, cancel := context.WithTimeout(ctx, time.Millisecond*200)
+	defer cancel()
+	respch := make(chan Response)
+
+	// we schedule this guy into a goroutine
+	go func() {
+		val, err := fetchThirdPartyStuffWhichCanBeSlow()
+		respch <- Response{
+			value: val,
+			err:   err,
+		}
+	}()
+
+	// if we call fetch user data
+	// after 200 milliseconds this channel will be closed
+	for {
+		select {
+		case <-ctx.Done():
+			return 0, fmt.Errorf("fetching data from third party took too long")
+		case resp := <-respch:
+			return resp.value, resp.err
+		}
+	}
 }
 
 func fetchThirdPartyStuffWhichCanBeSlow() (int, error) {
